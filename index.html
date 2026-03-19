@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KORU / EPV — Pair Trade Scenario Matrix | Thresher Fixed</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;display:flex;justify-content:center;padding:24px 16px;min-height:100vh}
+.m{font-family:'SF Mono','Fira Code',Consolas,monospace}
+.wr{background:#fff;color:#0f1a2e;padding:24px 28px;border-radius:10px;border:.5px solid #d5dce6;max-width:920px;width:100%;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+.brand{font-size:12px;color:#1a56db;letter-spacing:1.5px;margin-bottom:4px}
+.ttl{font-size:20px;font-weight:500}
+.sub{font-size:14px;color:#556275;margin-top:3px}
+.ts-box{background:#f4f6f9;border:.5px solid #d5dce6;border-radius:6px;padding:6px 14px;text-align:right;white-space:nowrap}
+.tsl{font-size:11px;color:#556275}
+.tsv{font-size:13px;font-weight:500;color:#0f1a2e;margin-top:2px}
+.ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.panel{background:#f4f6f9;border:.5px solid #d5dce6;border-radius:6px;padding:14px 16px}
+.panel-lbl{font-size:11px;color:#556275;letter-spacing:.5px;margin-bottom:12px}
+.notional-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.notional-row label{font-size:13px;color:#556275;min-width:130px}
+.notional-row input[type=number]{background:#fff;border:.5px solid #b0bac8;border-radius:4px;color:#0f1a2e;font-family:'SF Mono','Fira Code',Consolas,monospace;font-size:20px;font-weight:500;width:70px;padding:5px 8px;text-align:center;-moz-appearance:textfield}
+.notional-row input[type=number]::-webkit-outer-spin-button,.notional-row input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.notional-row input[type=number]:focus{outline:none;border-color:#1a56db}
+.notional-unit{font-size:13px;color:#556275}
+.alloc-pills{display:flex;gap:8px}
+.pill{font-size:11px;padding:4px 10px;border-radius:3px;font-weight:500;border:.5px solid}
+.pill-koru{background:#e8eefb;color:#1a56db;border-color:#1a56db}
+.pill-epv{background:#fef3c7;color:#92400e;border-color:#d97706}
+.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prob-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.prob-name{font-size:11px;color:#556275}
+.prob-val{font-size:14px;font-weight:500;min-width:36px;text-align:right}
+.prob-sub{font-size:10px;color:#8a96a8;margin-bottom:4px}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:#d5dce6;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;cursor:pointer;border:none}
+input[type=range].s2a::-webkit-slider-thumb{background:#b45309}
+input[type=range].s2b::-webkit-slider-thumb{background:#1a56db}
+input[type=range].s3::-webkit-slider-thumb{background:#c2410c}
+input[type=range].s4::-webkit-slider-thumb{background:#b91c1c}
+.prob-status{font-size:11px;color:#556275;margin-top:8px}
+.ev-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.ev-card{background:#fff;border:.5px solid #d5dce6;border-radius:6px;padding:12px 14px;position:relative;overflow:hidden}
+.ev-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.ev-card.koru::before{background:#1a56db}
+.ev-card.epv::before{background:#d97706}
+.ev-card.port::before{background:#15803d}
+.ev-card.risk::before{background:#b91c1c}
+.ev-lbl{font-size:11px;color:#556275;letter-spacing:.5px;margin-bottom:5px}
+.ev-val{font-size:24px;font-weight:500;color:#0f1a2e}
+.ev-sub{font-size:11px;color:#556275;margin-top:3px}
+.pos{color:#15803d}.neg{color:#b91c1c}.mix{color:#b45309}.neu{color:#556275}
+.tl{display:flex;margin-bottom:18px;border-bottom:.5px solid #d5dce6}
+.tb{flex:0 0 auto;padding:8px 14px 10px;font-size:13px;color:#556275;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;font-family:inherit}
+.tb:hover{color:#1a56db}.tb.a{color:#1a56db;border-bottom-color:#1a56db}
+.fvt{background:#fff;border:.5px solid #d5dce6;border-radius:6px;overflow:hidden;margin-bottom:18px}
+.fvt table{width:100%;border-collapse:collapse;font-size:13px}
+.fvt th{text-align:left;padding:9px 12px;font-size:11px;font-weight:500;color:#556275;letter-spacing:.5px;border-bottom:.5px solid #d5dce6;white-space:nowrap;background:#f8f9fb}
+.fvt td{padding:11px 12px;border-bottom:.5px solid #d5dce6;vertical-align:top;color:#3a4a63}
+.fvt tbody tr:last-child td{border-bottom:none}
+.fvt tbody tr:hover{background:#fafbfc}
+.fvt tbody tr.row-s2a td:first-child{border-left:2px solid #b45309}
+.fvt tbody tr.row-s2b td:first-child{border-left:2px solid #1a56db}
+.fvt tbody tr.row-s3  td:first-child{border-left:2px solid #c2410c}
+.fvt tbody tr.row-s4  td:first-child{border-left:2px solid #b91c1c}
+.s-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;flex-shrink:0;margin-top:5px}
+.s-cell{display:flex;align-items:flex-start}
+.s-name{font-weight:500;font-size:13px;color:#0f1a2e}
+.s-sub{font-size:11px;color:#8a96a8;margin-top:2px}
+.ret{font-size:11px;color:#556275;line-height:1.6}
+.ret-mid{font-size:13px;font-weight:500}
+.pl-val{font-size:17px;font-weight:500}
+.pl-sub{font-size:10px;color:#8a96a8;margin-top:1px}
+.mech{font-size:12px;color:#556275;line-height:1.5}
+.mech strong{color:#3a4a63;font-weight:500}
+.path-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.path-card{background:#f4f6f9;border:.5px solid #d5dce6;border-radius:6px;padding:14px 16px}
+.path-card.best{background:#f0fdf4;border-color:#86efac}
+.path-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.path-meta{flex:1}
+.path-scen{font-size:11px;color:#8a96a8;margin-bottom:2px}
+.path-desc{font-size:13px;font-weight:500;color:#0f1a2e}
+.path-total{font-size:28px;font-weight:500;white-space:nowrap}
+.path-breakdown{font-size:11px;color:#8a96a8;border-top:.5px solid #d5dce6;padding-top:8px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.best-badge{font-size:10px;padding:2px 7px;border-radius:3px;background:#dcfce7;color:#15803d;border:.5px solid #86efac;white-space:nowrap;align-self:flex-start}
+.info-box{border-left:2px solid #1a56db;background:#f0f5ff;border-radius:0 4px 4px 0;padding:10px 14px;font-size:13px;color:#3a4a63;line-height:1.6;margin-bottom:16px}
+.info-box strong{color:#1a56db;font-weight:500}
+.warn-box{border-left:2px solid #b45309;background:#fffbeb;border-radius:0 4px 4px 0;padding:10px 14px;font-size:13px;color:#3a4a63;line-height:1.6;margin-top:14px}
+.warn-box strong{color:#b45309;font-weight:500}
+.lbl{font-size:12px;color:#556275;letter-spacing:.5px;margin-bottom:10px}
+.fo{font-size:11px;color:#8a96a8;margin-top:18px;border-top:.5px solid #d5dce6;padding-top:14px;display:flex;justify-content:space-between;gap:16px}
+@media(max-width:700px){.ctrl-grid{grid-template-columns:1fr}.ev-grid{grid-template-columns:repeat(2,1fr)}.path-grid{grid-template-columns:1fr}.wr{padding:16px}}
+</style>
+</head>
+<body>
+<div class="wr">
+
+<div class="hdr">
+  <div>
+    <div class="m brand">THRESHER FIXED</div>
+    <div class="ttl">KORU / EPV — Pair Trade Scenario Matrix</div>
+    <div class="sub">40% KORU (3×) &nbsp;/&nbsp; 60% EPV (2× inverse) &nbsp;·&nbsp; Iran conflict &nbsp;·&nbsp; Two-phase: active → resolution</div>
+  </div>
+  <div class="ts-box">
+    <div class="m tsl">UPDATED</div>
+    <div class="m tsv" id="ts">—</div>
+  </div>
+</div>
+
+<div class="ctrl-grid">
+  <div class="panel">
+    <div class="m panel-lbl">POSITION SIZING</div>
+    <div class="notional-row">
+      <label>Portfolio notional</label>
+      <input type="number" id="notional" value="10" min="1" max="100" step="1">
+      <span class="notional-unit">%</span>
+    </div>
+    <div class="alloc-pills">
+      <span class="pill pill-koru m" id="koru-pill">4.0% → KORU</span>
+      <span class="pill pill-epv m" id="epv-pill">6.0% → EPV</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="m panel-lbl">PHASE 1 SCENARIO PROBABILITIES</div>
+    <div class="prob-grid">
+      <div>
+        <div class="prob-header"><span class="m prob-name" style="color:#b45309">S2a — hot simmer</span><span class="m prob-val" style="color:#b45309" id="lbl-s2a">25%</span></div>
+        <div class="prob-sub">Oil $95–110 · Hormuz contested</div>
+        <input type="range" class="s2a" min="0" max="60" value="25" step="5" id="sl-s2a">
+      </div>
+      <div>
+        <div class="prob-header"><span class="m prob-name" style="color:#1a56db">S2b — slow simmer</span><span class="m prob-val" style="color:#1a56db" id="lbl-s2b">20%</span></div>
+        <div class="prob-sub">Oil $80–90 · Talks begin</div>
+        <input type="range" class="s2b" min="0" max="50" value="20" step="5" id="sl-s2b">
+      </div>
+      <div>
+        <div class="prob-header"><span class="m prob-name" style="color:#c2410c">S3 — prolonged</span><span class="m prob-val" style="color:#c2410c" id="lbl-s3">35%</span></div>
+        <div class="prob-sub">Oil $110–130 · Months long</div>
+        <input type="range" class="s3" min="0" max="60" value="35" step="5" id="sl-s3">
+      </div>
+      <div>
+        <div class="prob-header"><span class="m prob-name" style="color:#b91c1c">S4 — full war</span><span class="m prob-val" style="color:#b91c1c" id="lbl-s4">20%</span></div>
+        <div class="prob-sub">Oil $140–160+ · Recession</div>
+        <input type="range" class="s4" min="0" max="40" value="20" step="5" id="sl-s4">
+      </div>
+    </div>
+    <div class="m prob-status">Total: <span id="total-prob">100%</span><span id="prob-warn" style="color:#b91c1c;display:none"> — must sum to 100%</span></div>
+  </div>
+</div>
+
+<div class="ev-grid">
+  <div class="ev-card koru"><div class="m ev-lbl">KORU CONTRIBUTION</div><div class="m ev-val" id="ev-koru">—</div><div class="ev-sub">on allocated notional</div></div>
+  <div class="ev-card epv"><div class="m ev-lbl">EPV CONTRIBUTION</div><div class="m ev-val" id="ev-epv">—</div><div class="ev-sub">on allocated notional</div></div>
+  <div class="ev-card port"><div class="m ev-lbl">PORTFOLIO EV</div><div class="m ev-val pos" id="ev-port">—</div><div class="ev-sub" id="ev-port-sub">on 10% notional</div></div>
+  <div class="ev-card risk"><div class="m ev-lbl">KORU RISK SHARE</div><div class="m ev-val" style="color:#b91c1c">~69%</div><div class="ev-sub">of vol on 40% capital</div></div>
+</div>
+
+<div class="tl">
+  <button class="tb a" onclick="showTab('p1',this)">Phase 1 — active conflict</button>
+  <button class="tb" onclick="showTab('p2',this)">Phase 2 — resolution (additive)</button>
+  <button class="tb" onclick="showTab('combined',this)">Combined path P&amp;L</button>
+</div>
+
+<!-- PHASE 1 -->
+<div id="tab-p1">
+<div class="fvt"><div style="overflow-x:auto"><table>
+<thead><tr>
+  <th style="width:21%">Scenario</th><th style="width:7%">Prob</th><th style="width:8%">Oil</th>
+  <th style="width:14%">KORU <span style="font-weight:400;opacity:.6">(40% wt)</span></th>
+  <th style="width:14%">EPV <span style="font-weight:400;opacity:.6">(60% wt)</span></th>
+  <th style="width:12%">Portfolio</th><th style="width:8%">P&amp;L</th><th>Key mechanic</th>
+</tr></thead>
+<tbody>
+<tr class="row-s2a">
+  <td><div class="s-cell"><span class="s-dot" style="background:#b45309"></span><div><div class="s-name">S2a — hot simmer</div><div class="s-sub">Conflict ongoing. Hormuz contested.</div></div></div></td>
+  <td><span class="m" style="font-size:14px;font-weight:500;color:#b45309" id="td-s2a">25%</span></td>
+  <td class="neu" style="font-size:12px">$95–110</td>
+  <td><div class="ret">−10 → −25%</div><div class="ret-mid neg">mid −18%</div></td>
+  <td><div class="ret">+20 → +35%</div><div class="ret-mid pos">mid +28%</div></td>
+  <td><div class="ret-mid mix">+8 → +17%</div><div class="ret neu" style="font-size:11px">mid +13%</div></td>
+  <td><div class="pl-val mix m" id="p1-s2a">+1.3%</div><div class="pl-sub m">portfolio</div></td>
+  <td class="mech">EPV working on energy differential. KORU under oil-cost pressure. <strong>ECB hike path activating</strong> — compresses VGK multiple even before resolution.</td>
+</tr>
+<tr class="row-s2b">
+  <td><div class="s-cell"><span class="s-dot" style="background:#1a56db"></span><div><div class="s-name">S2b — slow simmer</div><div class="s-sub">Ceasefire talks. Oil easing.</div></div></div></td>
+  <td><span class="m" style="font-size:14px;font-weight:500;color:#1a56db" id="td-s2b">20%</span></td>
+  <td class="neu" style="font-size:12px">$80–90</td>
+  <td><div class="ret">+15 → +30%</div><div class="ret-mid pos">mid +23%</div></td>
+  <td><div class="ret">−10 → −20%</div><div class="ret-mid neg">mid −15%</div></td>
+  <td><div class="ret-mid mix">0 → +10%</div><div class="ret neu" style="font-size:11px">mid +5%</div></td>
+  <td><div class="pl-val mix m" id="p1-s2b">+0.5%</div><div class="pl-sub m">portfolio</div></td>
+  <td class="mech">KORU recovering. EPV leaking as VGK bids on energy relief. <strong>ECB limits the bleed</strong> — caps VGK rally at +12–18% vs +25–35% without tightening.</td>
+</tr>
+<tr class="row-s3">
+  <td><div class="s-cell"><span class="s-dot" style="background:#c2410c"></span><div><div class="s-name">S3 — prolonged</div><div class="s-sub">Sustained escalation. Months long.</div></div></div></td>
+  <td><span class="m" style="font-size:14px;font-weight:500;color:#c2410c" id="td-s3">35%</span></td>
+  <td class="neu" style="font-size:12px">$110–130</td>
+  <td><div class="ret">−30 → −50%</div><div class="ret-mid neg">mid −40%</div></td>
+  <td><div class="ret">+40 → +65%</div><div class="ret-mid pos">mid +53%</div></td>
+  <td><div class="ret-mid pos">+4 → +27%</div><div class="ret neu" style="font-size:11px">mid +16%</div></td>
+  <td><div class="pl-val pos m" id="p1-s3">+1.6%</div><div class="pl-sub m">portfolio</div></td>
+  <td class="mech"><strong>EPV is the engine.</strong> Europe's gas/LNG exposure fully expressed — Qatar attacked, nat gas doubles. ECB pauses on stagflation but EPV wins through the energy channel.</td>
+</tr>
+<tr class="row-s4">
+  <td><div class="s-cell"><span class="s-dot" style="background:#b91c1c"></span><div><div class="s-name">S4 — full war</div><div class="s-sub">Regional conflict. Correlation spike.</div></div></div></td>
+  <td><span class="m" style="font-size:14px;font-weight:500;color:#b91c1c" id="td-s4">20%</span></td>
+  <td class="neu" style="font-size:12px">$140–160</td>
+  <td><div class="ret">−60 → −80%</div><div class="ret-mid neg">mid −70%</div></td>
+  <td><div class="ret">+70 → +110%</div><div class="ret-mid pos">mid +90%</div></td>
+  <td><div class="ret-mid pos">+10 → +42%</div><div class="ret neu" style="font-size:11px">mid +26%</div></td>
+  <td><div class="pl-val pos m" id="p1-s4">+2.6%</div><div class="pl-sub m">portfolio</div></td>
+  <td class="mech"><strong>KORU gap risk dominant.</strong> Single overnight headline can gap −15–20% before any stop fires. EPV at 60% weight is the survival mechanism. Watch KRW/USD erosion.</td>
+</tr>
+</tbody>
+</table></div></div>
+<div class="m" style="font-size:11px;color:#8a96a8">Phase 1 EV on notional: <span style="color:#0f1a2e" id="p1-ev">—</span> &nbsp;·&nbsp; Portfolio contribution: <span style="color:#0f1a2e" id="p1-ev-port">—</span></div>
+</div>
+
+<!-- PHASE 2 -->
+<div id="tab-p2" style="display:none">
+<div class="info-box"><strong>Phase 2 is additive and conditional.</strong> Resolution happens eventually — the question is from which Phase 1 state. These returns are <em>incremental</em> to Phase 1 P&amp;L, estimated from the Phase 1 exit level. The ECB hike story is load-bearing here: without it, VGK would rip 25–35% on resolution and EPV would be devastating. With ECB tightening resuming, VGK is capped at roughly +12–18%, keeping EPV losses manageable across every path.</div>
+<div class="fvt"><div style="overflow-x:auto"><table>
+<thead><tr>
+  <th style="width:21%">Entry state → S5</th><th style="width:9%">Oil: entry</th><th style="width:9%">Oil: res.</th>
+  <th style="width:14%">KORU (Phase 2)</th><th style="width:14%">EPV (Phase 2)</th>
+  <th style="width:10%">Phase 2 add</th><th>Why ECB contains EPV bleed</th>
+</tr></thead>
+<tbody>
+<tr class="row-s2a">
+  <td><div class="s-cell"><span class="s-dot" style="background:#b45309"></span><div><div class="s-name">S2a → resolution</div><div class="s-sub">Hot simmer ends. Hormuz reopens.</div></div></div></td>
+  <td class="neu" style="font-size:12px">$95–110</td><td class="neu" style="font-size:12px">~$80–85</td>
+  <td><div class="ret">+40 → +60%</div><div class="ret-mid pos">mid +50%</div></td>
+  <td><div class="ret">−18 → −28%</div><div class="ret-mid neg">mid −23%</div></td>
+  <td><span class="ret-mid pos m">+11%</span><br><span class="ret" style="font-size:11px">add</span></td>
+  <td class="mech">VGK gets energy relief but ECB resumes hikes immediately. Rate headwind caps re-rating. KORU +50% × 40% = +20%; EPV −23% × 60% = −14%. Net positive.</td>
+</tr>
+<tr class="row-s2b">
+  <td><div class="s-cell"><span class="s-dot" style="background:#1a56db"></span><div><div class="s-name">S2b → resolution</div><div class="s-sub">Slow simmer — already cooling.</div></div></div></td>
+  <td class="neu" style="font-size:12px">$80–90</td><td class="neu" style="font-size:12px">~$75–82</td>
+  <td><div class="ret">+25 → +40%</div><div class="ret-mid pos">mid +33%</div></td>
+  <td><div class="ret">−12 → −20%</div><div class="ret-mid neg">mid −16%</div></td>
+  <td><span class="ret-mid pos m">+7%</span><br><span class="ret" style="font-size:11px">add</span></td>
+  <td class="mech">Much of KORU recovery already priced in Phase 1. Incremental Phase 2 smaller. EPV bleed smaller too — less distance for VGK to travel. Softest outcome but still additive.</td>
+</tr>
+<tr class="row-s3">
+  <td><div class="s-cell"><span class="s-dot" style="background:#c2410c"></span><div><div class="s-name">S3 → resolution</div><div class="s-sub">Prolonged war ends. Ceasefire.</div></div></div></td>
+  <td class="neu" style="font-size:12px">$110–130</td><td class="neu" style="font-size:12px">~$80–88</td>
+  <td><div class="ret">+55 → +80%</div><div class="ret-mid pos">mid +68%</div></td>
+  <td><div class="ret">−28 → −40%</div><div class="ret-mid neg">mid −34%</div></td>
+  <td><span class="ret-mid pos m">+12%</span><br><span class="ret" style="font-size:11px">add</span></td>
+  <td class="mech"><strong>Biggest KORU snap-back</strong> from deepest level. EPV gives back Phase 1 gains partially — but Phase 1 EPV was +53%, so net combined very strong. <strong>Rotate EPV → KORU at resolution signal.</strong></td>
+</tr>
+<tr class="row-s4">
+  <td><div class="s-cell"><span class="s-dot" style="background:#b91c1c"></span><div><div class="s-name">S4 → resolution</div><div class="s-sub">Full war ends. Ceasefire.</div></div></div></td>
+  <td class="neu" style="font-size:12px">$140–160</td><td class="neu" style="font-size:12px">~$85–95</td>
+  <td><div class="ret">+70 → +100%</div><div class="ret-mid pos">mid +85%</div></td>
+  <td><div class="ret">−35 → −50%</div><div class="ret-mid neg">mid −43%</div></td>
+  <td><span class="ret-mid pos m">+13%</span><br><span class="ret" style="font-size:11px">add</span></td>
+  <td class="mech">Largest KORU move from deepest trough. Largest EPV reversal — but from largest Phase 1 EPV gain (+90%). Combined strongly positive. Requires surviving Phase 1 with disciplined KORU sizing.</td>
+</tr>
+</tbody>
+</table></div></div>
+<div class="warn-box"><strong>Sizing shift at resolution:</strong> The Phase 1 structure (40% KORU / 60% EPV) was built for an EPV-dominant environment. When the transition signal appears — ceasefire credible, Hormuz reopening, oil breaking below $90 — consider rotating Phase 1 EPV gains into additional KORU. Phase 2 is a KORU-dominant trade. The rebalancing at the inflection is where the incremental alpha lives.</div>
+</div>
+
+<!-- COMBINED -->
+<div id="tab-combined" style="display:none">
+<div class="m lbl">COMBINED P&amp;L — PHASE 1 + PHASE 2 (ADDITIVE) &nbsp;·&nbsp; % OF ALLOCATED NOTIONAL</div>
+<div class="path-grid" id="path-grid"></div>
+<div class="info-box" style="border-color:#15803d;background:#f0fdf4"><strong style="color:#15803d">Structural finding:</strong> S3 → S5 is the best risk-adjusted combined path. Prolonged war lets EPV compound in Phase 1, then KORU snaps back hard on resolution — the two phases reinforce rather than offset. S4 → S5 has the highest total return but carries KORU gap risk in Phase 1 that the other paths don't. Every combined path is positive — the trade is robust to sequencing.</div>
+</div>
+
+<div class="m fo">
+  <span>Not investment advice. Scenario analysis for portfolio risk management.</span>
+  <span>thresherfixed.com</span>
+</div>
+</div>
+
+<script>
+var probs={s2a:25,s2b:20,s3:35,s4:20};
+var midKORU={s2a:-17.5,s2b:22.5,s3:-40,s4:-70};
+var midEPV={s2a:27.5,s2b:-15,s3:52.5,s4:90};
+var midP2={s2a:11,s2b:7,s3:12,s4:13};
+var meta={
+  s2a:{scen:'S2a → S5',desc:'Hot simmer → resolution',dot:'#b45309'},
+  s2b:{scen:'S2b → S5',desc:'Slow simmer → resolution',dot:'#1a56db'},
+  s3:{scen:'S3 → S5',desc:'Prolonged war → ceasefire',dot:'#c2410c'},
+  s4:{scen:'S4 → S5',desc:'Full war → end of conflict',dot:'#b91c1c'}
+};
+
+function pMid(s){return midKORU[s]*0.4+midEPV[s]*0.6;}
+function fmt(v,dp){dp=dp||1;return(v>=0?'+':'')+v.toFixed(dp)+'%';}
+function cls(v){return v>0.5?'pos':v<-0.5?'neg':'mix';}
+
+function setTs(){
+  var d=new Date();
+  document.getElementById('ts').textContent=
+    d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})+
+    ' · '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+setTs();setInterval(setTs,60000);
+
+['s2a','s2b','s3','s4'].forEach(function(s){
+  document.getElementById('sl-'+s).addEventListener('input',function(){
+    probs[s]=+this.value;
+    document.getElementById('lbl-'+s).textContent=this.value+'%';
+    document.getElementById('td-'+s).textContent=this.value+'%';
+    updateAll();
+  });
+});
+document.getElementById('notional').addEventListener('input',updateAll);
+
+function updateAll(){
+  var n=parseFloat(document.getElementById('notional').value)||10;
+  document.getElementById('koru-pill').textContent=(n*0.4).toFixed(1)+'% → KORU';
+  document.getElementById('epv-pill').textContent=(n*0.6).toFixed(1)+'% → EPV';
+  document.getElementById('ev-port-sub').textContent='on '+n+'% notional';
+
+  var total=Object.values(probs).reduce(function(a,b){return a+b;},0);
+  var valid=total===100;
+  document.getElementById('total-prob').textContent=total+'%';
+  document.getElementById('prob-warn').style.display=valid?'none':'inline';
+
+  ['s2a','s2b','s3','s4'].forEach(function(s){
+    var pm=pMid(s),pl=pm/100*n;
+    var el=document.getElementById('p1-'+s);
+    el.textContent=fmt(pl);el.className='pl-val m '+cls(pl);
+  });
+
+  if(!valid)return;
+
+  var evK=Object.keys(probs).reduce(function(a,s){return a+probs[s]/100*midKORU[s]*0.4;},0);
+  var evE=Object.keys(probs).reduce(function(a,s){return a+probs[s]/100*midEPV[s]*0.6;},0);
+  var evT=evK+evE,portEV=evT/100*n;
+
+  var kEl=document.getElementById('ev-koru');kEl.textContent=fmt(evK);kEl.className='m ev-val '+cls(evK);
+  var eEl=document.getElementById('ev-epv');eEl.textContent=fmt(evE);eEl.className='m ev-val '+cls(evE);
+  document.getElementById('ev-port').textContent=fmt(portEV);
+  document.getElementById('p1-ev').textContent=fmt(evT/100*n);
+  document.getElementById('p1-ev-port').textContent=fmt(evT/100*n/100*n,2);
+
+  var bestS=Object.keys(midP2).reduce(function(b,s){return(pMid(s)+midP2[s])>(pMid(b)+midP2[b])?s:b;},'s2a');
+  document.getElementById('path-grid').innerHTML=Object.keys(meta).map(function(s){
+    var p1=pMid(s),combined=p1+midP2[s],port=combined/100*n,best=s===bestS;
+    return '<div class="path-card'+(best?' best':'')+'">'+
+      '<div class="path-top">'+
+        '<span class="s-dot" style="background:'+meta[s].dot+';margin-top:3px"></span>'+
+        '<div class="path-meta"><div class="m path-scen">'+meta[s].scen+'</div><div class="path-desc">'+meta[s].desc+'</div></div>'+
+        (best?'<span class="m best-badge">best path</span>':'')+
+        '<div class="path-total m '+(combined>=0?'pos':'neg')+'">'+fmt(combined)+'</div>'+
+      '</div>'+
+      '<div class="m path-breakdown">'+
+        '<span>Phase 1: <strong style="color:#0f1a2e">'+fmt(p1)+'</strong></span>'+
+        '<span>Phase 2 add: <strong style="color:#0f1a2e">+'+midP2[s]+'%</strong></span>'+
+        '<span style="color:#15803d;font-weight:500">Portfolio: '+fmt(port)+'</span>'+
+      '</div></div>';
+  }).join('');
+}
+
+function showTab(id,btn){
+  ['p1','p2','combined'].forEach(function(t){
+    document.getElementById('tab-'+t).style.display=t===id?'block':'none';
+  });
+  document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('a');});
+  btn.classList.add('a');
+}
+
+updateAll();
+</script>
+</body>
+</html>
